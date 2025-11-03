@@ -6,7 +6,7 @@ Una mini API hecha con **FastAPI** que permite consultar un archivo **CSV local*
 - `Ciudad`,
 - o varios `IDs` a la vez (consulta masiva).
 
-Incluye un script Python (`client_demo.py`) para probar todos los endpoints desde tu máquina.
+Incluye un script Python (`consultar-api.py`) para probar todos los endpoints desde tu máquina.
 
 ---
 
@@ -127,7 +127,7 @@ deactivate
 | Activar entorno | `venv\Scripts\Activate` *(Windows)* |
 | Instalar dependencias | `pip install -r requirements.txt` |
 | Ejecutar API | `uvicorn app.main:app --reload --app-dir src` |
-| Probar endpoints | `python client_demo.py` |
+| Probar endpoints | `python consultar-api.py` |
 | Desactivar entorno | `deactivate` |
 
 ---
