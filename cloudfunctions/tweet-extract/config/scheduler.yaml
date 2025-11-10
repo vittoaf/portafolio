@@ -1,0 +1,24 @@
+# scheduler.yaml
+# Configuración de Cloud Scheduler
+
+name: twitter-poller-job
+description: "Extrae tweets cada hora de Dom-Jue hasta 10pm UTC-5"
+
+schedule: "0 6-22/2 * * 0-4"
+time_zone: "America/Bogota"
+
+http_target:
+  uri: ${FUNCTION_URL}
+  http_method: POST
+  
+  oidc_token:
+    service_account_email: ${GCP_SERVICE_ACCOUNT_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+    audience: ${FUNCTION_URL}
+
+retry_config:
+  retry_count: 3
+  max_retry_duration: 600s
+  min_backoff_duration: 5s
+  max_backoff_duration: 60s
+
+attempt_deadline: 600s

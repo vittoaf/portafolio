@@ -1,0 +1,5 @@
+functions-framework==3.*
+tweepy==4.14.*
+google-cloud-firestore==2.*
+google-cloud-secret-manager==2.*
+pendulum==3.*

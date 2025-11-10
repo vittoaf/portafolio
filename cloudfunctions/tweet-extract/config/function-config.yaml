@@ -1,0 +1,27 @@
+# function-config.yaml
+# Configuración de Cloud Function
+
+name: twitter-poller
+runtime: python311
+entry_point: twitter_poller
+memory: 512MB
+timeout: 540s
+max_instances: 1
+min_instances: 0
+
+env_vars:
+  GCP_PROJECT: ${GCP_PROJECT_ID}
+
+service_account: ${GCP_SERVICE_ACCOUNT_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+
+# Trigger
+trigger:
+  type: http
+  security_level: secure_always
+  ingress: internal-only
+
+# Build
+build:
+  source:
+    storage_source:
+      bucket: gcf-v2-sources-${GCP_PROJECT_ID}-${GCP_REGION}
