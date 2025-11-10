@@ -71,7 +71,8 @@ gcloud services disable cloudscheduler.googleapis.com --project=$GCP_PROJECT_ID
 gcloud services disable firestore.googleapis.com --project=$GCP_PROJECT_ID
 gcloud services disable secretmanager.googleapis.com --project=$GCP_PROJECT_ID
 gcloud services disable cloudbuild.googleapis.com --project=$GCP_PROJECT_ID
-gcloud services disable logging.googleapis.com --project=$GCP_PROJECT_ID
+gcloud services disable run.googleapis.com --project=$GCP_PROJECT_ID
+gcloud services disable artifactregistry.googleapis.com --project=$GCP_PROJECT_ID
 ```
 
 ⚠️ **Puede tomar varios minutos.**
@@ -139,7 +140,7 @@ rm -rf logs/
 
 # Eliminar proyecto completo (opcional)
 cd ..
-rm -rf twitter-poller-gcp/
+rm -rf cloudfunctions/tweet-extract/
 ```
 
 ---

@@ -12,7 +12,7 @@
 ### 1. Preparar el entorno
 ```bash
 # Clonar o descargar el proyecto
-cd twitter-poller-gcp
+cd cloudfunctions/tweet-extract
 
 # Configurar variables
 cp .env.example .env
@@ -70,7 +70,7 @@ bash scripts/06-setup-scheduler.sh
 
 Editar `.env`:
 ```bash
-TWITTER_ACCOUNTS=Cuenta1,Cuenta2,Cuenta3
+TWITTER_ACCOUNTS=Cuenta1;Cuenta2;Cuenta3
 ```
 
 Luego:
