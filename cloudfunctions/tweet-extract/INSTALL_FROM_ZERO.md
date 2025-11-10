@@ -133,8 +133,8 @@ Deberías ver tu email y project ID.
 
 **Opción A: Con Git**
 ```bash
-git clone https://github.com/tu-usuario/twitter-poller-gcp.git
-cd twitter-poller-gcp
+git clone https://github.com/vittoaf/portafolio.git
+cd cloudfunctions/tweet-extract
 ```
 
 **Opción B: Sin Git**
@@ -166,7 +166,7 @@ GCP_REGION=us-central1
 TWITTER_BEARER_TOKEN=AAAAAAAAAAAAAAAAAAAAAFsKqwEAAAAA...
 
 # Cuentas a monitorear (sin @, separadas por comas)
-TWITTER_ACCOUNTS=InvictosSomos,Juezcentral,2010MisterChip
+TWITTER_ACCOUNTS=InvictosSomos;Juezcentral;2010MisterChip
 
 # Los demás valores déjalos como están
 ```

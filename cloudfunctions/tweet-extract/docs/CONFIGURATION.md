@@ -31,7 +31,7 @@
 | Variable | Descripción | Default |
 |----------|-------------|---------|
 | `SCHEDULER_CRON` | Expresión cron | `0 6-22/2 * * 0-4` |
-| `SCHEDULER_CRON` | Expresión cron | `0 5-17/2 * * 5` |
+| `SCHEDULER_CRON_02` | Expresión cron | `0 5-17/2 * * 5` |
 | `SCHEDULER_TIMEZONE` | Zona horaria | `America/Bogota` |
 
 ### Filtros

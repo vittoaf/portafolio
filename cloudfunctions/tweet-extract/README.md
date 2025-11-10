@@ -59,7 +59,7 @@ Cloud Function (Python 3.11)
 ## 🚀 Instalación Rápida
 ```bash
 # 1. Navegar a la carpeta del proyecto
-cd twitter-poller-gcp
+cd cloudfunctions/tweet-extract
 
 # 2. Configurar variables de entorno
 cp .env.example .env
@@ -111,7 +111,7 @@ gcloud scheduler jobs run twitter-poller-job --location=us-central1
 ### Cuentas de Twitter monitoreadas
 Editar en `.env`:
 ```bash
-TWITTER_ACCOUNTS=InvictosSomos,Juezcentral,2010MisterChip
+TWITTER_ACCOUNTS="InvictosSomos;Juezcentral;2010MisterChip"
 ```
 
 ### Filtros
@@ -189,6 +189,10 @@ MIT License - ver [LICENSE](LICENSE.md)
 
 ## 👤 Autor
 
-Tu Nombre
-- Twitter: [@tu_twitter](https://twitter.com/tu_twitter)
-- Email: tu@email.com
+- Linkedin: [Vitto Alcántara](https://www.linkedin.com/in/vittoalcantara/)
+- Email: vitto.alcantara@gmail.com
+
+## 🎥 PRÓXIMAMENTE!!! — Ver el tutorial en YouTube
+
+Si prefieres seguir el paso a paso en video, puedes verlo aquí:  
+👉 [Ver en YouTube](https://www.youtube.com/@leiaf2004)
