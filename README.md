@@ -96,7 +96,7 @@ Este repositorio reúne mis proyectos, prácticas y ejemplos sobre **procesamien
 ## ✉️ Contacto
 
 - **LinkedIn:** [linkedin.com/in/vittoalcantara](https://linkedin.com/in/vittoalcantara)  
-- **GitHub:** [github.com/tuusuario](https://github.com/vittoaf)  
+- **GitHub:** [github.com/vittoaf](https://github.com/vittoaf)  
 
 ---
 
