@@ -1,0 +1,19 @@
+{
+  "variable": {
+    "project_id": {
+      "type": "string",
+      "description": "ID del proyecto en Google Cloud Platform",
+      "default": "prj-cicd-user-17177"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region de computo y datasets de BigQuery",
+      "default": "us-central1"
+    },
+    "service_account_id": {
+      "type": "string",
+      "description": "Identificador de la Service Account para dbt e ingesta",
+      "default": "dbt-runner-sa"
+    }
+  }
+}

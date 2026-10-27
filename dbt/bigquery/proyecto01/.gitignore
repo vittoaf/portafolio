@@ -1,0 +1,26 @@
+# Credenciales y Secretos
+*.json
+!variables.tf.json
+*.key
+*.pem
+*.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/dbt_modules/
+dbt_project/logs/
