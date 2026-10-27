@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: "{{ env_var('GCP_PROJECT_ID', target.project) }}"
+    schema: bronze_layer
+    tables:
+      - name: raw_customers
+        description: "Tabla cruda de clientes ingerida desde CSV"
+      - name: raw_orders
+        description: "Tabla cruda de pedidos ingerida desde CSV"

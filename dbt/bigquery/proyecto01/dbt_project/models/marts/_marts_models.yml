@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: fct_customer_orders_summary
+    description: "Capa Gold: Resumen analitico de compras agregadas por cliente"
+    columns:
+      - name: customer_id
+        description: "Identificador unico de cliente"
+        tests:
+          - unique
+          - not_null
+      - name: total_spent
+        description: "Monto total acumulado de compras completadas"
+        tests:
+          - not_null

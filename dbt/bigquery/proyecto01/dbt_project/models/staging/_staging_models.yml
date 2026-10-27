@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Clientes limpios, deduplicados y estandarizados en capa Silver"
+    columns:
+      - name: customer_id
+        description: "Clave primaria de cliente"
+        tests:
+          - unique
+          - not_null
+      - name: email
+        description: "Correo electronico normalizado"
+        tests:
+          - not_null
+
+  - name: stg_orders
+    description: "Ordenes estandarizadas en capa Silver"
+    columns:
+      - name: order_id
+        description: "Clave primaria de orden"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Identificador foraneo del cliente"
+        tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: order_status
+        description: "Estado de la orden"
+        tests:
+          - accepted_values:
+              values: ['COMPLETED', 'CANCELLED', 'PENDING']
