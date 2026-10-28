@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_payments_pk_unique",
+  description: "Verifica unicidad de payment_id en stg_payments."
+}
+
+${helpers.assertUnique(ref("stg_payments"), ["payment_id"])}

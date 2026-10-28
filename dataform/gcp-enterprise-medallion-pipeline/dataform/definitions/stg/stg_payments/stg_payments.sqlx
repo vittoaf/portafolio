@@ -1,0 +1,37 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "stg_payments",
+  schema: "silver_layer",
+  description: "Capa Silver: Transacciones de pago liquidadas o en proceso, control de estados y montos."
+}
+
+MERGE ${self()} AS target
+USING (
+  SELECT
+    TRIM(payment_id) AS payment_id,
+    TRIM(order_id) AS order_id,
+    CAST(payment_timestamp AS TIMESTAMP) AS payment_timestamp,
+    DATE(CAST(payment_timestamp AS TIMESTAMP)) AS payment_date,
+    UPPER(TRIM(payment_method)) AS payment_method,
+    UPPER(TRIM(payment_status)) AS payment_status,
+    CAST(amount AS NUMERIC) AS amount,
+    CURRENT_TIMESTAMP() AS processed_at
+  FROM
+    ${ref("raw_payments")}
+  WHERE
+    payment_id IS NOT NULL
+) AS source
+ON target.payment_id = source.payment_id
+WHEN MATCHED THEN
+  UPDATE SET
+    order_id = source.order_id,
+    payment_timestamp = source.payment_timestamp,
+    payment_date = source.payment_date,
+    payment_method = source.payment_method,
+    payment_status = source.payment_status,
+    amount = source.amount,
+    processed_at = source.processed_at
+WHEN NOT MATCHED THEN
+  INSERT (payment_id, order_id, payment_timestamp, payment_date, payment_method, payment_status, amount, processed_at)
+  VALUES (source.payment_id, source.order_id, source.payment_timestamp, source.payment_date, source.payment_method, source.payment_status, source.amount, source.processed_at);

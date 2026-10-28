@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_gold_cust_act_pk_unique",
+  description: "Verifica clave compuesta (activity_date, customer_id) unica en fct_customer_daily_activity."
+}
+
+${helpers.assertUnique(ref("fct_customer_daily_activity"), ["activity_date", "customer_id"])}

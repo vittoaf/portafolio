@@ -1,0 +1,19 @@
+config {
+  type: "test",
+  dataset: "stg_customers"
+}
+
+input "raw_customers" {
+  SELECT 'C100' AS customer_id, 'pedro' AS first_name, 'gomez' AS last_name, ' PEDRO@GMAIL.COM ' AS email, ' +51 987654321 ' AS phone, 'pe' AS country, '2026-05-01 10:00:00' AS registration_date UNION ALL
+  SELECT 'C100' AS customer_id, 'Pedro' AS first_name, 'Gomez' AS last_name, 'pedro@gmail.com' AS email, '+51 987654321' AS phone, 'PE' AS country, '2026-05-02 11:00:00' AS registration_date
+}
+
+SELECT
+  'C100' AS customer_id,
+  'Pedro' AS first_name,
+  'Gomez' AS last_name,
+  'Pedro Gomez' AS full_name,
+  'pedro@gmail.com' AS email,
+  '+51 987654321' AS phone,
+  'PE' AS country,
+  TIMESTAMP '2026-05-02 11:00:00' AS registration_date

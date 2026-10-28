@@ -1,0 +1,19 @@
+{
+  "variable": {
+    "project_id": {
+      "type": "string",
+      "default": "prj-cicd-user-17177",
+      "description": "ID del proyecto en Google Cloud"
+    },
+    "gcp_region": {
+      "type": "string",
+      "default": "us-central1",
+      "description": "Monorregion mas economica (Iowa)"
+    },
+    "admin_user_email": {
+      "type": "string",
+      "default": "leiafperu@gmail.com",
+      "description": "Email del usuario operador para permisos de Linaje y Dataplex"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_gold_sales_pk_unique",
+  description: "Verifica grano unico compuesto (sale_date, product_id) en fct_sales_daily_performance."
+}
+
+${helpers.assertUnique(ref("fct_sales_daily_performance"), ["sale_date", "product_id"])}

@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_order_items_fk_products",
+  description: "Integridad referencial: valida que product_id exista en stg_products."
+}
+
+${helpers.assertReferentialIntegrity(ref("stg_order_items"), "product_id", ref("stg_products"), "product_id")}

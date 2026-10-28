@@ -1,0 +1,11 @@
+product_id,product_name,category,unit_cost,unit_price,is_active
+PROD001,Laptop Ultra Pro 15,COMPUTING,750.00,1200.00,true
+PROD002,Monitor Gamer 27 144Hz,MONITORS,160.00,280.00,true
+PROD003,Teclado Mecanico RGB,ACCESSORIES,35.00,75.00,true
+PROD004,Mouse Inalambrico Ergonomico,ACCESSORIES,18.50,42.00,true
+PROD005,Auriculares Cancelacion Ruido,AUDIO,65.00,130.00,true
+PROD006,Silla Ergonomica Premium,FURNITURE,140.00,260.00,true
+PROD007,Hub USB-C 8 en 1,ACCESSORIES,22.00,50.00,true
+PROD008,Disco SSD NVMe 1TB,STORAGE,55.00,110.00,true
+PROD009,Webcam 4K Streaming,COMPUTING,48.00,95.00,true
+PROD010,Soporte Monitor Brazo Dual,FURNITURE,30.00,68.00,false

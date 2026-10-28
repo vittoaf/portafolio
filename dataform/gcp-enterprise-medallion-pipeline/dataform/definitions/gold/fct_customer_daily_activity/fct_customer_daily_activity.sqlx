@@ -1,0 +1,48 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "fct_customer_daily_activity",
+  schema: "gold_layer",
+  description: "Capa Gold: Actividad diaria transaccional y pagos por cliente consolidada de forma incremental."
+}
+
+MERGE ${self()} AS target
+USING (
+  SELECT
+    o.order_date AS activity_date,
+    c.customer_id,
+    c.full_name,
+    c.country,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    SUM(CASE WHEN o.order_status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_orders,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN pay.amount ELSE 0 END), 0) AS total_amount_paid,
+    COALESCE(STRING_AGG(DISTINCT pay.payment_method, ', ' ORDER BY pay.payment_method), 'NONE') AS payment_methods_used,
+    CURRENT_TIMESTAMP() AS processed_at
+  FROM
+    ${ref("stg_orders")} AS o
+  INNER JOIN
+    ${ref("stg_customers")} AS c
+    ON o.customer_id = c.customer_id
+  LEFT JOIN
+    ${ref("stg_payments")} AS pay
+    ON o.order_id = pay.order_id AND pay.payment_status = 'SETTLED'
+  GROUP BY
+    activity_date,
+    customer_id,
+    full_name,
+    country
+) AS source
+ON target.activity_date = source.activity_date 
+   AND target.customer_id = source.customer_id
+WHEN MATCHED THEN
+  UPDATE SET
+    full_name = source.full_name,
+    country = source.country,
+    total_orders = source.total_orders,
+    completed_orders = source.completed_orders,
+    total_amount_paid = source.total_amount_paid,
+    payment_methods_used = source.payment_methods_used,
+    processed_at = source.processed_at
+WHEN NOT MATCHED THEN
+  INSERT (activity_date, customer_id, full_name, country, total_orders, completed_orders, total_amount_paid, payment_methods_used, processed_at)
+  VALUES (source.activity_date, source.customer_id, source.full_name, source.country, source.total_orders, source.completed_orders, source.total_amount_paid, source.payment_methods_used, source.processed_at);

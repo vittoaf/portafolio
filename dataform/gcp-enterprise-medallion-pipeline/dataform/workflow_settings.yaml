@@ -1,0 +1,4 @@
+defaultProject: "prj-cicd-user-17177"
+defaultDataset: "silver_layer"
+defaultLocation: "us-central1"
+assertionDataset: "dataform_assertions"

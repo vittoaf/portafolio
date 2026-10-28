@@ -1,0 +1,12 @@
+customer_id,first_name,last_name,email,phone,country,registration_date
+CUST001,carlos,quispe,carlos.quispe@example.com,+51 987654321,PE,2025-01-10 14:20:00
+CUST002,MARIA,DELGADO,maria.delgado@example.com,+51 912345678,PE,2025-01-12 09:15:00
+CUST003,John,Smith,john.smith@us-domain.com,+1 4155552671,US,2025-02-01 11:30:00
+CUST004,Elena,Rosas,elena.rosas@example.pe,,PE,2025-02-15 16:45:00
+CUST005,lucas,silva,lucas.silva@brasil.br,+55 11988887777,BR,2025-03-01 18:00:00
+CUST006,Andrea,Perez,andrea.perez@example.com,+51 999111222,PE,2025-03-10 10:00:00
+CUST007,Felipe,Mendoza,felipe.m@example.cl,+56 977665544,CL,2025-03-20 12:10:00
+CUST008,Sofia,Castro,sofia.castro@example.com,,PE,2025-04-05 15:25:00
+CUST009,Mateo,Gomez,mateo.gomez@arg.com,+54 91122334455,AR,2025-05-18 08:40:00
+CUST010,Valeria,Torres,valeria.torres@example.pe,+51 955443322,PE,2025-06-01 17:50:00
+CUST001,Carlos,Quispe,carlos.quispe@example.com,+51 987654321,PE,2025-01-10 14:20:00

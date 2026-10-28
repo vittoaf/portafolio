@@ -1,0 +1,59 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "fct_sales_daily_performance",
+  schema: "gold_layer",
+  description: "Capa Gold: Resumen diario incremental de rendimiento de ventas por producto y categoria."
+}
+
+MERGE ${self()} AS target
+USING (
+  SELECT
+    i.order_date AS sale_date,
+    p.category,
+    p.product_id,
+    p.product_name,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.quantity ELSE 0 END) AS units_sold,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.gross_amount ELSE 0 END), 0) AS gross_revenue,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.discount ELSE 0 END), 0) AS total_discounts,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.net_amount ELSE 0 END), 0) AS net_revenue,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN (i.quantity * p.unit_cost) ELSE 0 END), 0) AS total_cost,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN (i.net_amount - (i.quantity * p.unit_cost)) ELSE 0 END), 0) AS total_margin,
+    SAFE_DIVIDE(
+      SUM(CASE WHEN o.order_status = 'COMPLETED' THEN (i.net_amount - (i.quantity * p.unit_cost)) ELSE 0 END),
+      NULLIF(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.net_amount ELSE 0 END), 0)
+    ) * 100 AS profit_margin_pct,
+    CURRENT_TIMESTAMP() AS processed_at
+  FROM
+    ${ref("stg_order_items")} AS i
+  INNER JOIN
+    ${ref("stg_orders")} AS o
+    ON i.order_id = o.order_id
+  INNER JOIN
+    ${ref("stg_products")} AS p
+    ON i.product_id = p.product_id
+  GROUP BY
+    sale_date,
+    category,
+    product_id,
+    product_name
+) AS source
+ON target.sale_date = source.sale_date 
+   AND target.product_id = source.product_id
+WHEN MATCHED THEN
+  UPDATE SET
+    category = source.category,
+    product_name = source.product_name,
+    total_orders = source.total_orders,
+    units_sold = source.units_sold,
+    gross_revenue = source.gross_revenue,
+    total_discounts = source.total_discounts,
+    net_revenue = source.net_revenue,
+    total_cost = source.total_cost,
+    total_margin = source.total_margin,
+    profit_margin_pct = source.profit_margin_pct,
+    processed_at = source.processed_at
+WHEN NOT MATCHED THEN
+  INSERT (sale_date, category, product_id, product_name, total_orders, units_sold, gross_revenue, total_discounts, net_revenue, total_cost, total_margin, profit_margin_pct, processed_at)
+  VALUES (source.sale_date, source.category, source.product_id, source.product_name, source.total_orders, source.units_sold, source.gross_revenue, source.total_discounts, source.net_revenue, source.total_cost, source.total_margin, source.profit_margin_pct, source.processed_at);
