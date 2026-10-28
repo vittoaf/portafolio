@@ -20,8 +20,7 @@ function assertUnique(targetTableRef, columns) {
 
 function assertNotNull(targetTableRef, columns) {
   const cols = Array.isArray(columns) ? columns : [columns];
-  const conditions = cols.map(c => `(${c} IS NULL OR TRIM(CAST(${c} AS STRING)) = '')`).join(" OR
-      ");
+  const conditions = cols.map(c => `(${c} IS NULL OR TRIM(CAST(${c} AS STRING)) = '')`).join(" OR ");
   return `
     SELECT
       *

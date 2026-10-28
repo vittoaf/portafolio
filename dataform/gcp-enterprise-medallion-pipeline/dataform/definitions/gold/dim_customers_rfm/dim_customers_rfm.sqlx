@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "dim_customers_rfm",
-  schema: "gold_layer",
-  description: "Capa Gold: Segmentacion RFM (Recency, Frequency, Monetary) de clientes con etiquetas semanticas para Gemini/IA."
+  schema: "gold_layer"
 }
 
 TRUNCATE TABLE ${self()};

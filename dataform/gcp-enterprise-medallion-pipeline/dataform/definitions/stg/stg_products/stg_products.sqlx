@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "stg_products",
-  schema: "silver_layer",
-  description: "Capa Silver: Catalogo de productos saneado, margen unitario y categorias estandarizadas."
+  schema: "silver_layer"
 }
 
 TRUNCATE TABLE ${self()};

@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "fct_sales_daily_performance",
-  schema: "gold_layer",
-  description: "Capa Gold: Resumen diario incremental de rendimiento de ventas por producto y categoria."
+  schema: "gold_layer"
 }
 
 MERGE ${self()} AS target
