@@ -167,8 +167,8 @@ El script cargará las 5 tablas crudas en `bronze_layer` agregando el timestamp 
 
 ### Paso 4: Cargar Código y Ejecutar en Dataform
 1. En Google Cloud Console, ve a **BigQuery** -> **Dataform**.
-2. Entra al repositorio `medallion-dataform-repo` y abre el workspace `dev-workspace`.
-3. Carga o commitea los archivos de la carpeta `dataform/` del repositorio.
+2. Entra al repositorio `medallion-dataform-repo` y crear manualmente el workspace `dev-workspace`.
+3. Carga o commitea los archivos de la carpeta `dataform/` del repositorio, usando el archivo upload_dataform_all.py. En dataform, eliminar la carpeta de tests, está causando errores.
 4. En el panel superior, haz clic en **Start Execution** -> **All actions**.
 5. Dataform ejecutará las transformaciones (Truncate/Insert para maestros, Merge para incrementales), validará las pruebas unitarias y ejecutará las aserciones de calidad sin colisiones de claves ni problemas de cuotas.
 
@@ -193,6 +193,9 @@ Para destruir toda la infraestructura sin bloqueos de dependencias anidadas de D
    ```
 
 2. **Destruir con Terraform:**
+
+  Antes de ejecutar, eliminar manualmente el workspace y el repositorio de dataform.
+
    ```bash
    cd terraform
    terraform destroy -auto-approve
