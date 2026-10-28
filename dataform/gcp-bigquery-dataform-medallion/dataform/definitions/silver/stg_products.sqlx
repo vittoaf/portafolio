@@ -1,0 +1,45 @@
+config {
+  type: "table",
+  schema: "silver_layer",
+  description: "Capa Silver: Catálogo de productos saneado con validación de márgenes unitarios.",
+  columns: {
+    product_id: "Identificador único y clave principal del producto (PK).",
+    product_name: "Nombre comercial del producto.",
+    category: "Categoría del producto en mayúsculas.",
+    unit_cost: "Costo unitario del producto.",
+    unit_price: "Precio de venta de lista.",
+    unit_margin: "Margen unitario nominal (unit_price - unit_cost).",
+    is_active: "Indicador booleano de disponibilidad del producto.",
+    processed_at: "Timestamp UTC de auditoría en capa Silver."
+  },
+  assertions: {
+    uniqueKey: ["product_id"],
+    nonNull: ["product_id", "product_name", "unit_price"],
+    rowConditions: [
+      "unit_cost >= 0",
+      "unit_price >= unit_cost"
+    ]
+  },
+  bigquery: {
+    clusterBy: ["category"]
+  }
+}
+
+SELECT
+  TRIM(product_id) AS product_id,
+  TRIM(product_name) AS product_name,
+  UPPER(TRIM(category)) AS category,
+  CAST(unit_cost AS NUMERIC) AS unit_cost,
+  CAST(unit_price AS NUMERIC) AS unit_price,
+  CAST(unit_price AS NUMERIC) - CAST(unit_cost AS NUMERIC) AS unit_margin,
+  COALESCE(CAST(is_active AS BOOL), TRUE) AS is_active,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  ${ref("raw_products")}
+WHERE
+  product_id IS NOT NULL
+
+post_operations {
+  ALTER TABLE ${self()} DROP PRIMARY KEY IF EXISTS;
+  ALTER TABLE ${self()} ADD PRIMARY KEY (product_id) NOT ENFORCED;
+}

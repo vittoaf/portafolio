@@ -1,0 +1,6 @@
+product_id,product_name,category,unit_cost,unit_price,is_active
+P001,Laptop Pro 16,Electronics,1200.00,1650.00,true
+P002,Wireless Mouse,Accessories,15.50,29.90,true
+P003,Mechanical Keyboard,Accessories,45.00,89.00,true
+P004,4K Monitor 27,Electronics,280.00,399.00,true
+P005,Ergonomic Chair,Furniture,150.00,240.00,false

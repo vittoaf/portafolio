@@ -1,0 +1,63 @@
+config {
+  type: "table",
+  schema: "silver_layer",
+  description: "Capa Silver: Clientes limpios, estandarizados y deduplicados.",
+  columns: {
+    customer_id: "Identificador único y clave principal del cliente (PK).",
+    first_name: "Nombre del cliente estandarizado en formato Title Case.",
+    last_name: "Apellido del cliente estandarizado.",
+    full_name: "Nombre y apellido concatenados.",
+    email: "Correo electrónico en minúsculas y sin espacios.",
+    phone: "Teléfono formateado o NULL si viene vacío.",
+    country: "Código ISO de país (ej. PE, US, AR).",
+    registration_date: "Timestamp UTC del registro original.",
+    processed_at: "Timestamp de auditoría de procesamiento en Silver."
+  },
+  assertions: {
+    uniqueKey: ["customer_id"],
+    nonNull: ["customer_id", "email"]
+  },
+  bigquery: {
+    clusterBy: ["country"]
+  }
+}
+
+WITH cleaned_data AS (
+  SELECT
+    TRIM(customer_id) AS customer_id,
+    INITCAP(TRIM(first_name)) AS first_name,
+    INITCAP(TRIM(last_name)) AS last_name,
+    CONCAT(INITCAP(TRIM(first_name)), ' ', INITCAP(TRIM(last_name))) AS full_name,
+    LOWER(TRIM(email)) AS email,
+    NULLIF(TRIM(phone), '') AS phone,
+    COALESCE(UPPER(TRIM(country)), 'UNKNOWN') AS country,
+    CAST(registration_date AS TIMESTAMP) AS registration_date,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id 
+      ORDER BY CAST(registration_date AS TIMESTAMP) DESC
+    ) AS row_num
+  FROM
+    ${ref("raw_customers")}
+  WHERE
+    customer_id IS NOT NULL
+)
+
+SELECT
+  customer_id,
+  first_name,
+  last_name,
+  full_name,
+  email,
+  phone,
+  country,
+  registration_date,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  cleaned_data
+WHERE
+  row_num = 1
+
+post_operations {
+  ALTER TABLE ${self()} DROP PRIMARY KEY IF EXISTS;
+  ALTER TABLE ${self()} ADD PRIMARY KEY (customer_id) NOT ENFORCED;
+}
