@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_products_margin_positive",
+  description: "Regla de calidad: El precio unitario debe ser mayor o igual al costo unitario."
+}
+
+${helpers.assertCondition(ref("stg_products"), "unit_price >= unit_cost AND unit_cost >= 0")}

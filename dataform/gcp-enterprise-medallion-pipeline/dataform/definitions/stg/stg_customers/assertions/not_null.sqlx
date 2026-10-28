@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_customers_not_null",
+  description: "Verifica que campos obligatorios no sean nulos o vacios en stg_customers."
+}
+
+${helpers.assertNotNull(ref("stg_customers"), ["customer_id", "email", "country"])}

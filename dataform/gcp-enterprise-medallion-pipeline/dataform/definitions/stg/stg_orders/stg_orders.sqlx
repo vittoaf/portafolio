@@ -1,0 +1,37 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "stg_orders",
+  schema: "silver_layer",
+  description: "Capa Silver: Cabeceras de ordenes transaccionales procesadas de forma incremental con MERGE."
+}
+
+MERGE ${self()} AS target
+USING (
+  SELECT
+    TRIM(order_id) AS order_id,
+    TRIM(customer_id) AS customer_id,
+    CAST(order_timestamp AS TIMESTAMP) AS order_timestamp,
+    DATE(CAST(order_timestamp AS TIMESTAMP)) AS order_date,
+    UPPER(TRIM(order_status)) AS order_status,
+    INITCAP(TRIM(shipping_city)) AS shipping_city,
+    COALESCE(UPPER(TRIM(promo_code)), 'NONE') AS promo_code,
+    CURRENT_TIMESTAMP() AS processed_at
+  FROM
+    ${ref("raw_orders")}
+  WHERE
+    order_id IS NOT NULL
+) AS source
+ON target.order_id = source.order_id
+WHEN MATCHED THEN
+  UPDATE SET
+    customer_id = source.customer_id,
+    order_timestamp = source.order_timestamp,
+    order_date = source.order_date,
+    order_status = source.order_status,
+    shipping_city = source.shipping_city,
+    promo_code = source.promo_code,
+    processed_at = source.processed_at
+WHEN NOT MATCHED THEN
+  INSERT (order_id, customer_id, order_timestamp, order_date, order_status, shipping_city, promo_code, processed_at)
+  VALUES (source.order_id, source.customer_id, source.order_timestamp, source.order_date, source.order_status, source.shipping_city, source.promo_code, source.processed_at);

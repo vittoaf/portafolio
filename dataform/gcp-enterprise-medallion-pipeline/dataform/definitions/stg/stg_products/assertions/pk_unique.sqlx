@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_products_pk_unique",
+  description: "Verifica que product_id sea unico en stg_products."
+}
+
+${helpers.assertUnique(ref("stg_products"), ["product_id"])}

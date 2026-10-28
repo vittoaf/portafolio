@@ -1,0 +1,17 @@
+config {
+  type: "test",
+  dataset: "stg_products"
+}
+
+input "raw_products" {
+  SELECT 'P999' AS product_id, 'Teclado Gamer' AS product_name, 'peripherals' AS category, '50.00' AS unit_cost, '120.00' AS unit_price, 'true' AS is_active
+}
+
+SELECT
+  'P999' AS product_id,
+  'Teclado Gamer' AS product_name,
+  'PERIPHERALS' AS category,
+  NUMERIC '50.00' AS unit_cost,
+  NUMERIC '120.00' AS unit_price,
+  NUMERIC '70.00' AS unit_margin,
+  TRUE AS is_active

@@ -70,7 +70,7 @@ resource "google_bigquery_dataset" "medallion_datasets" {
   friendly_name               = each.key
   description                 = each.value.description
   location                    = var.region
-  delete_contents_on_destroy  = false
+  delete_contents_on_destroy  = true
 
   labels = {
     environment = var.environment

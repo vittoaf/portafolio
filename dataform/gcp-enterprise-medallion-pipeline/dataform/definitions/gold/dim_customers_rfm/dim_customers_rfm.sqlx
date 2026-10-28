@@ -1,0 +1,90 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "dim_customers_rfm",
+  schema: "gold_layer",
+  description: "Capa Gold: Segmentacion RFM (Recency, Frequency, Monetary) de clientes con etiquetas semanticas para Gemini/IA."
+}
+
+TRUNCATE TABLE ${self()};
+
+INSERT INTO ${self()} (
+  customer_id,
+  full_name,
+  email,
+  country,
+  first_order_date,
+  last_order_date,
+  days_since_last_order,
+  lifetime_completed_orders,
+  lifetime_monetary_spent,
+  avg_ticket_value,
+  rfm_segment,
+  ai_context_summary,
+  processed_at
+)
+WITH customer_aggregations AS (
+  SELECT
+    c.customer_id,
+    c.full_name,
+    c.email,
+    c.country,
+    MIN(o.order_date) AS first_order_date,
+    MAX(o.order_date) AS last_order_date,
+    DATE_DIFF(CURRENT_DATE(), MAX(o.order_date), DAY) AS days_since_last_order,
+    COUNT(DISTINCT CASE WHEN o.order_status = 'COMPLETED' THEN o.order_id END) AS lifetime_completed_orders,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN i.net_amount ELSE 0 END), 0) AS lifetime_monetary_spent
+  FROM
+    ${ref("stg_customers")} AS c
+  LEFT JOIN
+    ${ref("stg_orders")} AS o
+    ON c.customer_id = o.customer_id
+  LEFT JOIN
+    ${ref("stg_order_items")} AS i
+    ON o.order_id = i.order_id
+  GROUP BY
+    c.customer_id,
+    c.full_name,
+    c.email,
+    c.country
+),
+segmented AS (
+  SELECT
+    customer_id,
+    full_name,
+    email,
+    country,
+    first_order_date,
+    last_order_date,
+    COALESCE(days_since_last_order, 9999) AS days_since_last_order,
+    lifetime_completed_orders,
+    lifetime_monetary_spent,
+    ROUND(SAFE_DIVIDE(lifetime_monetary_spent, lifetime_completed_orders), 2) AS avg_ticket_value,
+    CASE
+      WHEN lifetime_completed_orders >= 2 AND lifetime_monetary_spent >= 1000 THEN 'CHAMPIONS_VIP'
+      WHEN lifetime_completed_orders >= 2 AND lifetime_monetary_spent < 1000 THEN 'LOYAL_RETENTION'
+      WHEN lifetime_completed_orders = 1 AND days_since_last_order <= 30 THEN 'NEW_ACTIVE'
+      WHEN lifetime_completed_orders = 1 AND days_since_last_order > 30 THEN 'AT_RISK_CHURN'
+      ELSE 'PROSPECT_NO_PURCHASE'
+    END AS rfm_segment
+  FROM
+    customer_aggregations
+)
+SELECT
+  customer_id,
+  full_name,
+  email,
+  country,
+  first_order_date,
+  last_order_date,
+  days_since_last_order,
+  lifetime_completed_orders,
+  lifetime_monetary_spent,
+  COALESCE(avg_ticket_value, 0.0) AS avg_ticket_value,
+  rfm_segment,
+  CONCAT('Cliente ', full_name, ' (', country, ') clasificado como ', rfm_segment, 
+         ' con gasto acumulado de $', CAST(lifetime_monetary_spent AS STRING), 
+         ' en ', CAST(lifetime_completed_orders AS STRING), ' ordenes.') AS ai_context_summary,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  segmented;

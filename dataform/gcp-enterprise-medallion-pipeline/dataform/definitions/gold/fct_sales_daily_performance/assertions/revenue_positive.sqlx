@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_gold_sales_revenue_positive",
+  description: "Regla de calidad: net_revenue y gross_revenue deben ser mayores o iguales a cero."
+}
+
+${helpers.assertCondition(ref("fct_sales_daily_performance"), "net_revenue >= 0 AND gross_revenue >= 0")}

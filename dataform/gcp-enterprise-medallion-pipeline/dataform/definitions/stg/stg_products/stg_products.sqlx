@@ -1,0 +1,33 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "stg_products",
+  schema: "silver_layer",
+  description: "Capa Silver: Catalogo de productos saneado, margen unitario y categorias estandarizadas."
+}
+
+TRUNCATE TABLE ${self()};
+
+INSERT INTO ${self()} (
+  product_id,
+  product_name,
+  category,
+  unit_cost,
+  unit_price,
+  unit_margin,
+  is_active,
+  processed_at
+)
+SELECT
+  TRIM(product_id) AS product_id,
+  TRIM(product_name) AS product_name,
+  UPPER(TRIM(category)) AS category,
+  CAST(unit_cost AS NUMERIC) AS unit_cost,
+  CAST(unit_price AS NUMERIC) AS unit_price,
+  (CAST(unit_price AS NUMERIC) - CAST(unit_cost AS NUMERIC)) AS unit_margin,
+  COALESCE(LOWER(TRIM(is_active)) = 'true', TRUE) AS is_active,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  ${ref("raw_products")}
+WHERE
+  product_id IS NOT NULL;

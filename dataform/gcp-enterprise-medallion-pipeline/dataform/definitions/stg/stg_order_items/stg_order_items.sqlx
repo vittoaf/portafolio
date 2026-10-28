@@ -1,0 +1,41 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "stg_order_items",
+  schema: "silver_layer",
+  description: "Capa Silver: Lineas de items vendidas, calculo de ingresos brutos y netos incrementales."
+}
+
+MERGE ${self()} AS target
+USING (
+  SELECT
+    TRIM(order_item_id) AS order_item_id,
+    TRIM(order_id) AS order_id,
+    TRIM(product_id) AS product_id,
+    DATE(CAST(order_date AS DATE)) AS order_date,
+    CAST(quantity AS INT64) AS quantity,
+    CAST(unit_price AS NUMERIC) AS unit_price,
+    COALESCE(CAST(discount AS NUMERIC), 0) AS discount,
+    (CAST(quantity AS INT64) * CAST(unit_price AS NUMERIC)) AS gross_amount,
+    ((CAST(quantity AS INT64) * CAST(unit_price AS NUMERIC)) - COALESCE(CAST(discount AS NUMERIC), 0)) AS net_amount,
+    CURRENT_TIMESTAMP() AS processed_at
+  FROM
+    ${ref("raw_order_items")}
+  WHERE
+    order_item_id IS NOT NULL
+) AS source
+ON target.order_item_id = source.order_item_id
+WHEN MATCHED THEN
+  UPDATE SET
+    order_id = source.order_id,
+    product_id = source.product_id,
+    order_date = source.order_date,
+    quantity = source.quantity,
+    unit_price = source.unit_price,
+    discount = source.discount,
+    gross_amount = source.gross_amount,
+    net_amount = source.net_amount,
+    processed_at = source.processed_at
+WHEN NOT MATCHED THEN
+  INSERT (order_item_id, order_id, product_id, order_date, quantity, unit_price, discount, gross_amount, net_amount, processed_at)
+  VALUES (source.order_item_id, source.order_id, source.product_id, source.order_date, source.quantity, source.unit_price, source.discount, source.gross_amount, source.net_amount, source.processed_at);

@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_stg_payments_fk_orders",
+  description: "Integridad referencial: valida que order_id de pagos exista en stg_orders."
+}
+
+${helpers.assertReferentialIntegrity(ref("stg_payments"), "order_id", ref("stg_orders"), "order_id")}

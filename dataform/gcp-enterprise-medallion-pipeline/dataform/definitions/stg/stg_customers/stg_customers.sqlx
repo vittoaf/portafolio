@@ -1,0 +1,54 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  name: "stg_customers",
+  schema: "silver_layer",
+  description: "Capa Silver: Clientes limpios, estandarizados con INITCAP y deduplicados mediante Truncate & Insert."
+}
+
+TRUNCATE TABLE ${self()};
+
+INSERT INTO ${self()} (
+  customer_id,
+  first_name,
+  last_name,
+  full_name,
+  email,
+  phone,
+  country,
+  registration_date,
+  processed_at
+)
+WITH deduplicated AS (
+  SELECT
+    TRIM(customer_id) AS customer_id,
+    INITCAP(TRIM(first_name)) AS first_name,
+    INITCAP(TRIM(last_name)) AS last_name,
+    CONCAT(INITCAP(TRIM(first_name)), ' ', INITCAP(TRIM(last_name))) AS full_name,
+    LOWER(TRIM(email)) AS email,
+    NULLIF(TRIM(phone), '') AS phone,
+    UPPER(TRIM(country)) AS country,
+    CAST(registration_date AS TIMESTAMP) AS registration_date,
+    ROW_NUMBER() OVER(
+      PARTITION BY customer_id 
+      ORDER BY CAST(registration_date AS TIMESTAMP) DESC
+    ) AS rn
+  FROM
+    ${ref("raw_customers")}
+  WHERE
+    customer_id IS NOT NULL
+)
+SELECT
+  customer_id,
+  first_name,
+  last_name,
+  full_name,
+  email,
+  phone,
+  country,
+  registration_date,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  deduplicated
+WHERE
+  rn = 1;

@@ -1,0 +1,11 @@
+js {
+  const helpers = require("includes/assertions_helpers");
+}
+
+config {
+  type: "assertion",
+  name: "assert_dim_customers_rfm_pk_unique",
+  description: "Verifica clave primaria unica customer_id en dim_customers_rfm."
+}
+
+${helpers.assertUnique(ref("dim_customers_rfm"), ["customer_id"])}
