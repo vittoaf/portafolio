@@ -1,0 +1,34 @@
+{
+  "variable": {
+    "project_id": {
+      "type": "string",
+      "description": "ID del proyecto en Google Cloud Platform",
+      "default": "prj-cicd-user-17177"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region de GCP para cómputo, Datasets de BigQuery y Dataplex",
+      "default": "us-central1"
+    },
+    "environment": {
+      "type": "string",
+      "description": "Ambiente de despliegue (dev, prod)",
+      "default": "dev"
+    },
+    "service_account_id": {
+      "type": "string",
+      "description": "ID de la Service Account que ejecutará los pipelines de datos",
+      "default": "sa-dataform-pipeline"
+    },
+    "dataform_repo_name": {
+      "type": "string",
+      "description": "Nombre del repositorio de Dataform en BigQuery Studio",
+      "default": "medallion-dataform-repo"
+    },
+    "admin_user_email": {
+      "description": "Correo del usuario operador para visualización de Dataplex y Data Lineage",
+      "type": "string",
+      "default": "leiafperu@gmail.com"
+    }
+  }
+}

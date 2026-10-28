@@ -1,0 +1,80 @@
+config {
+  type: "incremental",
+  schema: "silver_layer",
+  description: "Capa Silver: Órdenes transaccionales limpias, particionadas por fecha y clusterizadas.",
+  columns: {
+    order_id: "Identificador único de la orden (PK).",
+    customer_id: "Clave foránea apuntando a stg_customers (FK).",
+    product_id: "Clave foránea apuntando a stg_products (FK).",
+    order_timestamp: "Timestamp de la transacción original.",
+    order_date: "Fecha truncada para particionamiento diario.",
+    quantity: "Cantidad de unidades compradas.",
+    unit_price: "Precio unitario cobrado.",
+    discount: "Monto de descuento aplicado.",
+    gross_amount: "Importe bruto (quantity * unit_price).",
+    net_amount: "Importe neto final (gross_amount - discount).",
+    order_status: "Estado de la orden (COMPLETED, PENDING, CANCELLED).",
+    processed_at: "Timestamp UTC de auditoría."
+  },
+  assertions: {
+    uniqueKey: ["order_id"],
+    nonNull: ["order_id", "customer_id", "product_id", "order_date"],
+    rowConditions: [
+      "quantity > 0",
+      "net_amount >= 0",
+      "order_status IN ('COMPLETED', 'PENDING', 'CANCELLED')"
+    ]
+  },
+  bigquery: {
+    partitionBy: "order_date",
+    clusterBy: ["customer_id", "product_id"]
+  }
+}
+
+WITH base_orders AS (
+  SELECT
+    TRIM(order_id) AS order_id,
+    TRIM(customer_id) AS customer_id,
+    TRIM(product_id) AS product_id,
+    CAST(order_date AS TIMESTAMP) AS order_timestamp,
+    DATE(CAST(order_date AS TIMESTAMP)) AS order_date,
+    CAST(quantity AS INT64) AS quantity,
+    CAST(unit_price AS NUMERIC) AS unit_price,
+    COALESCE(CAST(discount AS NUMERIC), 0) AS discount,
+    (CAST(quantity AS INT64) * CAST(unit_price AS NUMERIC)) AS gross_amount,
+    ((CAST(quantity AS INT64) * CAST(unit_price AS NUMERIC)) - COALESCE(CAST(discount AS NUMERIC), 0)) AS net_amount,
+    UPPER(TRIM(order_status)) AS order_status
+  FROM
+    ${ref("raw_orders")}
+)
+
+SELECT
+  order_id,
+  customer_id,
+  product_id,
+  order_timestamp,
+  order_date,
+  quantity,
+  unit_price,
+  discount,
+  gross_amount,
+  net_amount,
+  order_status,
+  CURRENT_TIMESTAMP() AS processed_at
+FROM
+  base_orders
+
+${when(incremental(), `
+  WHERE order_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+`)}
+
+post_operations {
+  ${when(!incremental(), `
+    ALTER TABLE ${self()}
+      ADD PRIMARY KEY (order_id) NOT ENFORCED,
+      ADD CONSTRAINT IF NOT EXISTS fk_orders_customer 
+        FOREIGN KEY (customer_id) REFERENCES ${ref("stg_customers")}(customer_id) NOT ENFORCED,
+      ADD CONSTRAINT IF NOT EXISTS fk_orders_product 
+        FOREIGN KEY (product_id) REFERENCES ${ref("stg_products")}(product_id) NOT ENFORCED;
+  `)}
+}

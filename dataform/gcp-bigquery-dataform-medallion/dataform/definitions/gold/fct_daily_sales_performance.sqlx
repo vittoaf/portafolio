@@ -1,0 +1,78 @@
+config {
+  type: "table",
+  schema: "gold_layer",
+  description: "Capa Gold: Resumen diario de ventas por categoría de producto con cálculo de márgenes y órdenes efectivas.",
+  columns: {
+    sale_date: "Fecha de la agregación de ventas (Partición).",
+    category: "Categoría de producto (Cluster).",
+    product_name: "Nombre comercial del producto.",
+    total_orders: "Total de transacciones registradas en el día.",
+    completed_orders: "Conteo de transacciones finalizadas con éxito.",
+    units_sold: "Suma de unidades vendidas en órdenes completadas.",
+    gross_revenue: "Ingresos brutos acumulados.",
+    total_discounts: "Total acumulado de descuentos concedidos.",
+    net_revenue: "Ingresos netos finales acumulados.",
+    total_cost: "Costo de los bienes vendidos (COGS).",
+    total_profit: "Utilidad neta monetaria (net_revenue - total_cost).",
+    profit_margin_pct: "Porcentaje de rentabilidad neta (total_profit / net_revenue).",
+    unique_buyers: "Cantidad de clientes únicos distintos en el día.",
+    refreshed_at: "Timestamp UTC de refresco del modelo analítico."
+  },
+  assertions: {
+    uniqueKey: ["sale_date", "product_name"],
+    nonNull: ["sale_date", "category", "net_revenue"]
+  },
+  bigquery: {
+    partitionBy: "sale_date",
+    clusterBy: ["category"]
+  }
+}
+
+WITH joined_sales AS (
+  SELECT
+    o.order_id,
+    o.order_date AS sale_date,
+    o.customer_id,
+    p.product_id,
+    p.product_name,
+    p.category,
+    p.unit_cost,
+    o.quantity,
+    o.gross_amount,
+    o.discount,
+    o.net_amount,
+    o.order_status
+  FROM
+    ${ref("stg_orders")} o
+  INNER JOIN
+    ${ref("stg_products")} p
+    ON o.product_id = p.product_id
+)
+
+SELECT
+  sale_date,
+  category,
+  product_name,
+  COUNT(order_id) AS total_orders,
+  COUNTIF(order_status = 'COMPLETED') AS completed_orders,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN quantity ELSE 0 END), 0) AS units_sold,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN gross_amount ELSE 0 END), 0) AS gross_revenue,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN discount ELSE 0 END), 0) AS total_discounts,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN net_amount ELSE 0 END), 0) AS net_revenue,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN quantity * unit_cost ELSE 0 END), 0) AS total_cost,
+  COALESCE(SUM(CASE WHEN order_status = 'COMPLETED' THEN net_amount - (quantity * unit_cost) ELSE 0 END), 0) AS total_profit,
+  ROUND(
+    SAFE_DIVIDE(
+      SUM(CASE WHEN order_status = 'COMPLETED' THEN net_amount - (quantity * unit_cost) ELSE 0 END),
+      SUM(CASE WHEN order_status = 'COMPLETED' THEN net_amount ELSE 0 END)
+    ) * 100, 
+    2
+  ) AS profit_margin_pct,
+  COUNT(DISTINCT CASE WHEN order_status = 'COMPLETED' THEN customer_id END) AS unique_buyers,
+  CURRENT_TIMESTAMP() AS refreshed_at
+FROM
+  joined_sales
+GROUP BY
+  sale_date,
+  category,
+  product_name

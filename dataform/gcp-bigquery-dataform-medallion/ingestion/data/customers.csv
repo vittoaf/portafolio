@@ -1,0 +1,7 @@
+customer_id,first_name,last_name,email,phone,registration_date,country
+C001,Carlos,Mendoza,carlos.mendoza@example.com,+51 987654321,2026-01-15 10:30:00,PE
+C002,Ana,Gomez,ana.gomez@gmail.com,+51 912345678,2026-01-18 14:15:00,PE
+C003,John,Doe,john.doe@example.com,,2026-02-01 09:00:00,US
+C004,Lucia,Vargas,lucia.vargas@outlook.com,+51 955443322,2026-02-14 16:40:00,PE
+C005,Mateo,Fernandez,mateo.fernandez@techcorp.com,+54 911 234567,2026-03-01 11:20:00,AR
+C001,Carlos,Mendoza,carlos.mendoza@example.com,+51 987654321,2026-01-15 10:30:00,PE

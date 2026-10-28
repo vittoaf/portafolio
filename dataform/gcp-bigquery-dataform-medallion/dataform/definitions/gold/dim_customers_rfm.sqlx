@@ -1,0 +1,72 @@
+config {
+  type: "table",
+  schema: "gold_layer",
+  description: "Capa Gold: Dimensión analítica de clientes con cálculo RFM (Recency, Frequency, Monetary) y segmentación para agentes de IA.",
+  columns: {
+    customer_id: "Identificador único del cliente (PK).",
+    full_name: "Nombre completo del cliente.",
+    email: "Correo electrónico verificado.",
+    country: "País de residencia.",
+    first_purchase_date: "Fecha de la primera compra registrada.",
+    last_purchase_date: "Fecha de la última compra registrada (Recency).",
+    total_lifetime_orders: "Cantidad de órdenes completadas a lo largo de su vida (Frequency).",
+    total_lifetime_spent: "Monto total monetario acumulado gastado por el cliente (Monetary).",
+    avg_order_value: "Ticket promedio por transacción completada.",
+    customer_segment: "Clasificación RFM (VIP, Regular, En Riesgo, Nuevo).",
+    refreshed_at: "Timestamp UTC de procesamiento analítico."
+  },
+  assertions: {
+    uniqueKey: ["customer_id"],
+    nonNull: ["customer_id", "email", "total_lifetime_spent"]
+  },
+  bigquery: {
+    clusterBy: ["customer_segment", "country"]
+  }
+}
+
+WITH customer_orders AS (
+  SELECT
+    c.customer_id,
+    c.full_name,
+    c.email,
+    c.country,
+    MIN(o.order_date) AS first_purchase_date,
+    MAX(o.order_date) AS last_purchase_date,
+    COUNT(CASE WHEN o.order_status = 'COMPLETED' THEN o.order_id END) AS total_lifetime_orders,
+    COALESCE(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN o.net_amount ELSE 0 END), 0) AS total_lifetime_spent
+  FROM
+    ${ref("stg_customers")} c
+  LEFT JOIN
+    ${ref("stg_orders")} o
+    ON c.customer_id = o.customer_id
+  GROUP BY
+    c.customer_id,
+    c.full_name,
+    c.email,
+    c.country
+)
+
+SELECT
+  customer_id,
+  full_name,
+  email,
+  country,
+  first_purchase_date,
+  last_purchase_date,
+  total_lifetime_orders,
+  total_lifetime_spent,
+  ROUND(SAFE_DIVIDE(total_lifetime_spent, total_lifetime_orders), 2) AS avg_order_value,
+  CASE
+    WHEN total_lifetime_spent >= 1500 THEN 'VIP_HIGH_VALUE'
+    WHEN total_lifetime_orders >= 2 THEN 'REGULAR_LOYAL'
+    WHEN total_lifetime_orders = 1 THEN 'RECENT_NEW'
+    ELSE 'CHURN_OR_NO_PURCHASE'
+  END AS customer_segment,
+  CURRENT_TIMESTAMP() AS refreshed_at
+FROM
+  customer_orders
+
+post_operations {
+  ALTER TABLE ${self()} DROP PRIMARY KEY IF EXISTS;
+  ALTER TABLE ${self()} ADD PRIMARY KEY (customer_id) NOT ENFORCED;
+}
