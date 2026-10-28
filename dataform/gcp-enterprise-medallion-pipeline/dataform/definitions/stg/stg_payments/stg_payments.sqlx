@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "stg_payments",
-  schema: "silver_layer",
-  description: "Capa Silver: Transacciones de pago liquidadas o en proceso, control de estados y montos."
+  schema: "silver_layer"
 }
 
 MERGE ${self()} AS target

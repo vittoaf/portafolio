@@ -35,7 +35,7 @@ resource "google_bigquery_table" "stg_products" {
   table_id            = "stg_products"
   deletion_protection = false
 
-  description = "Catalogo maestro de productos saneado. Grano: un registro por product_id."
+  description = "Catalogo maestro de productos saneado, margen unitario y categorias estandarizadas. Grano: un registro por product_id."
 
   schema = jsonencode([
     { name = "product_id", type = "STRING", mode = "REQUIRED", description = "Identificador unico de producto (PK)." },
@@ -110,6 +110,8 @@ resource "google_bigquery_table" "stg_order_items" {
   table_id            = "stg_order_items"
   deletion_protection = false
 
+  description = "Lineas de items vendidas, calculo de ingresos brutos y netos incrementales."
+
   time_partitioning {
     type  = "DAY"
     field = "order_date"
@@ -169,6 +171,8 @@ resource "google_bigquery_table" "stg_payments" {
   table_id            = "stg_payments"
   deletion_protection = false
 
+  description = "Transacciones de pago liquidadas o en proceso, control de estados y montos."
+
   time_partitioning {
     type  = "DAY"
     field = "payment_date"
@@ -214,6 +218,8 @@ resource "google_bigquery_table" "fct_sales_daily_performance" {
   table_id            = "fct_sales_daily_performance"
   deletion_protection = false
 
+  description = "Resumen diario incremental de rendimiento de ventas por producto y categoria."
+
   time_partitioning {
     type  = "DAY"
     field = "sale_date"
@@ -251,6 +257,8 @@ resource "google_bigquery_table" "fct_customer_daily_activity" {
   dataset_id          = google_bigquery_dataset.gold.dataset_id
   table_id            = "fct_customer_daily_activity"
   deletion_protection = false
+
+  description = "Actividad diaria transaccional y pagos por cliente consolidada de forma incremental."
 
   time_partitioning {
     type  = "DAY"

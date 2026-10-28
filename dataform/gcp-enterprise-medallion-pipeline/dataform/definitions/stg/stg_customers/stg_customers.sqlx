@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "stg_customers",
-  schema: "silver_layer",
-  description: "Capa Silver: Clientes limpios, estandarizados con INITCAP y deduplicados mediante Truncate & Insert."
+  schema: "silver_layer"
 }
 
 TRUNCATE TABLE ${self()};

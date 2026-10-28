@@ -2,8 +2,7 @@ config {
   type: "operations",
   hasOutput: true,
   name: "stg_orders",
-  schema: "silver_layer",
-  description: "Capa Silver: Cabeceras de ordenes transaccionales procesadas de forma incremental con MERGE."
+  schema: "silver_layer"
 }
 
 MERGE ${self()} AS target
