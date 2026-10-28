@@ -1,0 +1,7 @@
+{
+  "defaultSchema": "silver_layer",
+  "assertionSchema": "dataform_assertions",
+  "warehouse": "bigquery",
+  "defaultDatabase": "prj-cicd-user-17177",
+  "defaultLocation": "us-central1"
+}
