@@ -1,0 +1,4 @@
+project_id  = "prj-cicd-user-17177"
+region      = "us-central1"
+environment = "dev"
+prefix      = "finflow"
