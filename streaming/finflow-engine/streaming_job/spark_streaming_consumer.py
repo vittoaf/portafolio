@@ -1,9 +1,12 @@
 import sys
 import json
+from decimal import Decimal
+from google.api_core.exceptions import DeadlineExceeded
 from google.cloud import pubsub_v1
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, to_timestamp
-from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+from pyspark.sql.types import StructType, StructField, StringType, DecimalType
+from pyspark.sql.types import TimestampType
 
 def build_spark_session(app_name="FinFlow-Streaming"):
     return (
@@ -22,14 +25,40 @@ def main():
     bq_table = sys.argv[3]
     checkpoint_dir = sys.argv[4]
 
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = subscriber.subscription_path(project_id, subscription_id)
+
+    print(f"[*] Escuchando suscripcion Pub/Sub: {subscription_path}")
+
+    # Intentar obtener mensajes con captura de cola vacía (DeadlineExceeded)
+    try:
+        response = subscriber.pull(
+            request={"subscription": subscription_path, "max_messages": 500},
+            timeout=5.0
+        )
+        messages = response.received_messages
+    except DeadlineExceeded:
+        print("[INFO] No hay mensajes nuevos en Pub/Sub (Timeout alcanzado). Finalizando ejecucion limpiamente.")
+        messages = []
+    except Exception as e:
+        print(f"[ERROR] Error inesperado consultando Pub/Sub: {e}")
+        messages = []
+
+    if not messages:
+        print("[INFO] Cero mensajes pendientes por procesar. Apagando batch.")
+        return
+
+    # Inicializar Spark únicamente si hay datos por procesar
     spark = build_spark_session()
     spark.sparkContext.setLogLevel("WARN")
+
+    print(f"[INFO] Procesando {len(messages)} mensajes recibidos...")
 
     schema = StructType([
         StructField("transaction_id", StringType(), False),
         StructField("account_id", StringType(), False),
         StructField("customer_id", StringType(), False),
-        StructField("amount", DoubleType(), False),
+        StructField("amount", DecimalType(38, 9), False),
         StructField("currency", StringType(), False),
         StructField("transaction_type", StringType(), False),
         StructField("channel", StringType(), False),
@@ -39,25 +68,6 @@ def main():
         StructField("payload_hash", StringType(), False)
     ])
 
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(project_id, subscription_id)
-
-    print(f"[*] Escuchando suscripcion Pub/Sub: {subscription_path}")
-
-    # Pull sincrónico por lotes (micro-batch)
-    response = subscriber.pull(
-        request={"subscription": subscription_path, "max_messages": 500},
-        timeout=10.0
-    )
-
-    messages = response.received_messages
-    if not messages:
-        print("[INFO] No se encontraron mensajes pendientes en Pub/Sub.")
-        spark.stop()
-        return
-
-    print(f"[INFO] Procesando {len(messages)} mensajes recibidos...")
-
     records = []
     ack_ids = []
 
@@ -65,32 +75,44 @@ def main():
         try:
             payload_str = msg.message.data.decode("utf-8")
             data = json.loads(payload_str)
-            # Validación básica de estructura
             if "transaction_id" in data and "amount" in data:
+                data["amount"] = Decimal(str(data["amount"]))
                 records.append(data)
                 ack_ids.append(msg.ack_id)
             else:
-                # Esquema inválido: no hacer ack para permitir que Pub/Sub lo envíe al DLQ tras max_delivery_attempts
-                print(f"[WARN] Mensaje con esquema inválido: {data}")
+                print(f"[WARN] Mensaje con esquema invalido: {data}")
         except Exception as e:
-            # Mensajes no parseables (corruptos): se omiten para enrutamiento a DLQ
-            print(f"[DLQ] Error decodificando payload: {e}")
+            print(f"[DLQ] Error decodificando payload corrupto: {e}")
 
     if records:
         df = spark.createDataFrame(records, schema=schema)
 
-        # Idempotencia intra-batch
         deduped_df = (
             df.dropDuplicates(["transaction_id"])
             .withColumn("event_timestamp", to_timestamp(col("event_timestamp")))
             .withColumn("ingestion_timestamp", current_timestamp())
         )
 
+        final_schema = StructType([
+                StructField("transaction_id", StringType(), False),
+                StructField("account_id", StringType(), False),
+                StructField("customer_id", StringType(), False),
+                StructField("amount", DecimalType(38, 9), False),
+                StructField("currency", StringType(), False),
+                StructField("transaction_type", StringType(), False),
+                StructField("channel", StringType(), False),
+                StructField("status", StringType(), False),
+                StructField("merchant_name", StringType(), True),  # NULLABLE en BQ
+                StructField("event_timestamp", TimestampType(), False),  # REQUIRED en BQ
+                StructField("payload_hash", StringType(), False),
+                StructField("ingestion_timestamp", TimestampType(), False)  # REQUIRED en BQ
+            ])
+
+        final_df = spark.createDataFrame(deduped_df.rdd, schema=final_schema)
         temp_bucket = checkpoint_dir.replace("gs://", "").split("/")[0]
 
-        # Escritura nativa en BigQuery sin necesidad de JARs externos
         (
-            deduped_df.write
+            final_df.write
             .format("bigquery")
             .option("table", f"{project_id}:{bq_table}")
             .option("temporaryGcsBucket", temp_bucket)
@@ -98,9 +120,8 @@ def main():
             .save()
         )
 
-        print(f"[SUCCESS] {deduped_df.count()} registros persistidos exitosamente en BigQuery.")
+        print(f"[SUCCESS] {final_df.count()} registros persistidos exitosamente en BigQuery.")
 
-        # Confirmar recepción (ACK) solo tras persistencia exitosa en BigQuery
         subscriber.acknowledge(
             request={"subscription": subscription_path, "ack_ids": ack_ids}
         )
