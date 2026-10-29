@@ -73,6 +73,12 @@ resource "google_service_account_iam_member" "act_as_spark_sa" {
   member             = "user:${data.google_client_openid_userinfo.me.email}"
 }
 
+resource "google_project_iam_member" "spark_sa_bq_job_user" {
+  project = var.project_id
+  role    = "roles/bigquery.jobUser"
+  member  = "serviceAccount:${google_service_account.spark_sa.email}"
+}
+
 resource "google_storage_bucket" "spark_artifacts" {
   name                        = "${var.prefix}-spark-artifacts-${var.project_id}"
   location                    = var.region
