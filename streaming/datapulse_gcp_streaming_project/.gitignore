@@ -1,0 +1,33 @@
+# Credenciales y Secretos
+*.json
+!variables.tf.json
+*.key
+*.pem
+*.env
+
+# Python & Entornos Virtuales
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb_checkpoints
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# Dataform Local Cache
+.df-credentials.json
+node_modules/
+package-lock.json
+
+# IDEs & SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
