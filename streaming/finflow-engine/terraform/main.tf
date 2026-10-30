@@ -159,6 +159,8 @@ resource "google_bigquery_table" "transactions_raw" {
   dataset_id = google_bigquery_dataset.finflow_ds.dataset_id
   table_id   = "transactions_raw"
 
+  deletion_protection = false
+
   time_partitioning {
     type  = "DAY"
     field = "event_timestamp"
@@ -187,6 +189,8 @@ EOF
 resource "google_bigquery_table" "transactions_dedup_view" {
   dataset_id = google_bigquery_dataset.finflow_ds.dataset_id
   table_id   = "transactions_gold_dedup"
+
+  deletion_protection = false
 
   view {
     query          = <<EOF

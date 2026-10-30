@@ -99,3 +99,12 @@ HAVING count > 1; -- Debe devolver 0 registros
 cd ../terraform
 terraform destroy -auto-approve
 ```
+
+En Cloud Storage quedarán dos buckets que Dataproc los crea de manera automática y no son gestionados por Terraform.
+Asegúrate de elminarlos, tendrán nombres similar a gs://dataproc-staging-us-central1 y gs://dataproc-temp-us-central1.
+
+```bash
+# Eliminarlos junto con su contenido
+gcloud storage rm --recursive gs://dataproc-staging-us-central1-*
+gcloud storage rm --recursive gs://dataproc-temp-us-central1-*
+```
