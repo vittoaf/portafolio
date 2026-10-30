@@ -49,7 +49,7 @@ def generate_transaction(tx_id_override=None):
         "payload_hash": payload_hash
     }
 
-def run_producer(messages_to_send=50, sleep_sec=0.5):
+def run_producer(messages_to_send=5000, sleep_sec=0.1):
     print(f"[*] Publicando eventos hacia: {topic_path}...")
     cached_tx_for_duplicate = None
 
